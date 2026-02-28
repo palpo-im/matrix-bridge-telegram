@@ -196,7 +196,7 @@ pub struct LoggingFileConfig {
     pub disabled: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct DatabaseConfig {
     #[serde(default)]
     pub url: Option<String>,
