@@ -1,27 +1,63 @@
-pub mod client;
-pub mod handler;
-
 use std::sync::Arc;
 
 use anyhow::Result;
+use teloxide::{prelude::*, types::MessageId, Bot};
 
+use crate::bridge::BridgeCore;
 use crate::config::Config;
 
 pub struct TelegramClient {
     config: Arc<Config>,
-    bridge: Option<Arc<crate::bridge::BridgeCore>>,
+    bot: Option<Bot>,
+    bridge: Option<Arc<BridgeCore>>,
 }
 
 impl TelegramClient {
     pub async fn new(config: Arc<Config>) -> Result<Self> {
-        Ok(Self { config, bridge: None })
+        let bot = config.auth.bot_token.as_ref()
+            .filter(|t| t != "disabled" && !t.is_empty())
+            .map(Bot::new);
+        Ok(Self { config, bot, bridge: None })
     }
 
-    pub async fn set_bridge(&self, bridge: Arc<crate::bridge::BridgeCore>) {
-        let _ = bridge;
+    pub async fn set_bridge(&mut self, bridge: Arc<BridgeCore>) {
+        self.bridge = Some(bridge);
     }
 
-    pub async fn stop(&self) -> Result<()> {
+    pub async fn start(&self) -> Result<()> {
+        if let Some(ref bot) = self.bot {
+            tracing::info!("Starting Telegram bot...");
+            let bot = bot.clone();
+            tokio::spawn(async move {
+                teloxide::repl(bot, |msg: Message| async move {
+                    tracing::info!("Telegram message from chat {}", msg.chat.id);
+                    respond(())
+                }).await
+            });
+        }
+        Ok(())
+    }
+
+    pub async fn stop(&self) -> Result<()> { Ok(()) }
+
+    pub async fn send_message(&self, chat_id: i64, text: &str) -> Result<()> {
+        if let Some(ref bot) = self.bot {
+            bot.send_message(teloxide::types::ChatId(chat_id), text).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn edit_message(&self, chat_id: i64, message_id: i32, text: &str) -> Result<()> {
+        if let Some(ref bot) = self.bot {
+            bot.edit_message_text(teloxide::types::ChatId(chat_id), MessageId(message_id), text).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn delete_message(&self, chat_id: i64, message_id: i32) -> Result<()> {
+        if let Some(ref bot) = self.bot {
+            bot.delete_message(teloxide::types::ChatId(chat_id), MessageId(message_id)).await?;
+        }
         Ok(())
     }
 }
