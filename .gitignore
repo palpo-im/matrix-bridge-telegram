@@ -1,0 +1,14 @@
+/target
+/Cargo.lock
+*.db
+*.db-journal
+*.log
+.env
+config.yaml
+telegram-registration.yaml
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
