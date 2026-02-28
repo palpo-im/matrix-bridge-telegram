@@ -1,0 +1,10 @@
+D:\Works\palpo-im\matrix-bridge-telegram\target\debug\deps\h3_datagram-521e04693ade8022.d: C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\lib.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\client.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\datagram.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\datagram_handler.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\quic_traits.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\server.rs
+
+D:\Works\palpo-im\matrix-bridge-telegram\target\debug\deps\libh3_datagram-521e04693ade8022.rmeta: C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\lib.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\client.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\datagram.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\datagram_handler.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\quic_traits.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\server.rs
+
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\lib.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\client.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\datagram.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\datagram_handler.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\quic_traits.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\h3-datagram-0.0.2\src\server.rs:

@@ -1,0 +1,29 @@
+pub use self::error::DatabaseError;
+pub use self::manager::DatabaseManager;
+pub use self::models::{
+    MessageMapping, PortalInfo, ProcessedEvent, ReactionMapping, TelegramFileInfo,
+    TelegramUserInfo, UserMapping,
+};
+pub use self::stores::{MessageStore, PortalStore, ReactionStore, TelegramFileStore, UserStore};
+
+pub mod error;
+pub mod manager;
+pub mod models;
+#[cfg(feature = "postgres")]
+pub mod schema;
+pub mod stores;
+
+#[cfg(feature = "postgres")]
+pub mod postgres;
+
+#[cfg(feature = "sqlite")]
+pub mod sqlite;
+
+#[cfg(feature = "sqlite")]
+pub mod schema_sqlite;
+
+#[cfg(feature = "mysql")]
+pub mod mysql;
+
+#[cfg(feature = "mysql")]
+pub mod schema_mysql;

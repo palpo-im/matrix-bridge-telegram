@@ -1,0 +1,99 @@
+# Matrix Telegram Bridge sample configuration.
+# Use snake_case keys in this file.
+
+bridge:
+  domain: "localhost"
+  homeserver_url: "http://localhost:8008"
+  port: 29317
+  bind_address: "0.0.0.0"
+  presence_interval: 500
+  disable_presence: false
+  disable_typing_notifications: false
+  disable_deletion_forwarding: false
+  disable_portal_bridging: false
+  enable_self_service_bridging: false
+  disable_read_receipts: false
+  disable_join_leave_notifications: false
+  disable_invite_notifications: false
+  disable_room_topic_notifications: false
+  determine_code_language: false
+  admin_mxid: "@admin:localhost"
+  invalid_token_message: "Your Telegram API credentials seem to be invalid, and the bridge cannot function. Please update them in your bridge settings and restart the bridge"
+  command_prefix: "!tg"
+  user_limit: null
+  user_activity:
+    min_user_active_days: 0
+    inactive_after_days: 0
+  encryption:
+    allow: false
+    default: false
+    require: false
+
+auth:
+  api_id: 12345
+  api_hash: "your_api_hash_here"
+  bot_token: null
+
+logging:
+  level: "info"
+  line_date_format: "MMM-D HH:mm:ss.SSS"
+  format: "pretty"
+  files: []
+
+database:
+  # Choose one:
+  # filename: "telegram.db"
+  # url: "postgresql://user:password@localhost/matrix_telegram"
+  # url: "mysql://user:password@localhost:3306/matrix_telegram"
+  url: "sqlite://./telegram.db"
+  max_connections: 10
+  min_connections: 1
+
+room:
+  default_visibility: "public"
+  room_alias_prefix: "_telegram_"
+  enable_room_creation: true
+  kick_for: 30000
+
+portal:
+  username_template: "telegram_{userid}"
+  alias_template: "telegram_{groupname}"
+  displayname_template: "{displayname} (Telegram)"
+  displayname_preference:
+    - "full name"
+    - "username"
+    - "phone number"
+  displayname_max_length: 100
+  public_portals: false
+  sync_channel_members: false
+  max_initial_member_sync: 100
+  federate_rooms: true
+
+limits:
+  room_ghost_join_delay: 6000
+  telegram_send_delay: 1500
+  room_count: -1
+  matrix_event_age_limit_ms: 900000
+  max_telegram_delete: 10
+  image_as_file_size: 10
+
+ghosts:
+  nick_pattern: ":nick"
+  username_pattern: ":username"
+  username_template: "_telegram_{user_id}"
+  displayname_template: "{displayname} (Telegram)"
+  avatar_url_template: null
+
+metrics:
+  enabled: false
+  port: 9001
+  bind_address: "127.0.0.1"
+
+telegram:
+  catch_up: true
+  sequential_updates: true
+  connection:
+    timeout: 120
+    retries: 5
+    retry_delay: 1
+    flood_sleep_threshold: 60

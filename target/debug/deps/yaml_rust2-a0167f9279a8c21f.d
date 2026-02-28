@@ -1,0 +1,11 @@
+D:\Works\palpo-im\matrix-bridge-telegram\target\debug\deps\yaml_rust2-a0167f9279a8c21f.d: C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\lib.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\char_traits.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\debug.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\emitter.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\parser.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\scanner.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\yaml.rs
+
+D:\Works\palpo-im\matrix-bridge-telegram\target\debug\deps\libyaml_rust2-a0167f9279a8c21f.rmeta: C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\lib.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\char_traits.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\debug.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\emitter.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\parser.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\scanner.rs C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\yaml.rs
+
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\lib.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\char_traits.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\debug.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\emitter.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\parser.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\scanner.rs:
+C:\Users\chris\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\yaml-rust2-0.10.4\src\yaml.rs:
