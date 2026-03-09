@@ -105,7 +105,7 @@ impl DatabaseManager {
             #[cfg(feature = "sqlite")]
             DbType::Sqlite => {
                 let path = config.sqlite_path().unwrap();
-                let path_arc = Arc::new(path.clone());
+                let _path_arc = Arc::new(path.clone());
 
                 let user_store = Arc::new(InMemoryUserStore::new());
                 let portal_store = Arc::new(InMemoryPortalStore::new());

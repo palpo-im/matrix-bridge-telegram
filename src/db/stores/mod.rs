@@ -1,11 +1,8 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 
 use crate::db::{
-    DatabaseError, MessageMapping, PortalInfo, ProcessedEvent, ReactionMapping,
-    TelegramFileInfo, TelegramUserInfo, UserMapping,
+    DatabaseError, MessageMapping, PortalInfo, ReactionMapping,
+    TelegramFileInfo, UserMapping,
 };
 
 #[async_trait]
