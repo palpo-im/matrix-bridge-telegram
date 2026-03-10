@@ -780,6 +780,9 @@ impl MatrixAppservice {
                 "m.room.member" => {
                     processor.handler.handle_room_member(room_id, event).await;
                 }
+                "m.reaction" => {
+                    processor.handler.handle_room_reaction(room_id, event).await;
+                }
                 _ => {
                     debug!("Unhandled event type: {}", event_type);
                 }
@@ -816,6 +819,7 @@ pub trait MatrixEventHandler: Send + Sync {
     async fn handle_room_message(&self, room_id: &str, event: &serde_json::Value);
     async fn handle_room_redaction(&self, room_id: &str, event: &serde_json::Value);
     async fn handle_room_member(&self, room_id: &str, event: &serde_json::Value);
+    async fn handle_room_reaction(&self, room_id: &str, event: &serde_json::Value);
 }
 
 pub struct MatrixEventHandlerImpl {
@@ -873,6 +877,22 @@ impl MatrixEventHandler for MatrixEventHandlerImpl {
             Some(c) => c,
             None => return,
         };
+
+        // Check for edit
+        if let Some(relates_to) = content.get("m.relates_to") {
+            if relates_to.get("rel_type").and_then(|t| t.as_str()) == Some("m.replace") {
+                if let Some(original_event_id) = relates_to.get("event_id").and_then(|e| e.as_str()) {
+                    let new_content = content.get("m.new_content").unwrap_or(content);
+                    let new_body = new_content.get("body").and_then(|b| b.as_str()).unwrap_or("");
+                    if let Some(ref bridge) = self.bridge {
+                        if let Err(e) = bridge.handle_matrix_edit(room_id, event_id, sender, original_event_id, new_body).await {
+                            error!("Failed to handle Matrix edit: {}", e);
+                        }
+                    }
+                    return;
+                }
+            }
+        }
 
         let msgtype = content
             .get("msgtype")
@@ -1024,6 +1044,47 @@ impl MatrixEventHandler for MatrixEventHandlerImpl {
                     }
                 }
                 _ => {}
+            }
+        }
+    }
+
+    async fn handle_room_reaction(&self, room_id: &str, event: &serde_json::Value) {
+        let sender = match event.get("sender").and_then(|s| s.as_str()) {
+            Some(s) => s,
+            None => return,
+        };
+
+        // Don't process reactions from our own ghost users
+        if self.is_bridge_ghost(sender) {
+            return;
+        }
+
+        let content = match event.get("content") {
+            Some(c) => c,
+            None => return,
+        };
+
+        let relates_to = match content.get("m.relates_to") {
+            Some(r) => r,
+            None => return,
+        };
+
+        let target_event_id = match relates_to.get("event_id").and_then(|e| e.as_str()) {
+            Some(id) => id,
+            None => return,
+        };
+
+        let reaction_key = match relates_to.get("key").and_then(|k| k.as_str()) {
+            Some(k) => k,
+            None => return,
+        };
+
+        if let Some(ref bridge) = self.bridge {
+            if let Err(e) = bridge
+                .handle_matrix_reaction(room_id, target_event_id, sender, reaction_key)
+                .await
+            {
+                error!("Failed to handle Matrix reaction: {}", e);
             }
         }
     }

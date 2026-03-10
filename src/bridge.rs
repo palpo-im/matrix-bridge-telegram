@@ -626,6 +626,74 @@ impl BridgeCore {
         Ok(())
     }
 
+    /// Handle an edited message from Telegram and forward the edit to Matrix.
+    pub async fn handle_telegram_edit(
+        &self,
+        chat_id: i64,
+        message_id: i32,
+        sender_id: i64,
+        new_text: &str,
+    ) -> Result<()> {
+        let portal = match self.portal_manager.get_by_telegram_chat(chat_id).await {
+            Some(p) => p,
+            None => return Ok(()),
+        };
+
+        let message_store = self.db_manager.message_store();
+        if let Ok(Some(mapping)) = message_store
+            .get_by_telegram_message(chat_id, message_id as i64)
+            .await
+        {
+            self.ensure_puppet(sender_id).await?;
+            let puppet_mxid = self.matrix_client.get_user_mxid(sender_id).await;
+
+            // Send edit event to Matrix
+            let content = serde_json::json!({
+                "msgtype": "m.text",
+                "body": format!("* {}", new_text),
+                "m.new_content": {
+                    "msgtype": "m.text",
+                    "body": new_text
+                },
+                "m.relates_to": {
+                    "rel_type": "m.replace",
+                    "event_id": mapping.matrix_event_id
+                }
+            });
+
+            self.matrix_client
+                .send_message_as(&portal.matrix_room_id, &puppet_mxid, content)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    /// Handle a Telegram typing status and forward to Matrix.
+    pub async fn handle_telegram_typing(
+        &self,
+        chat_id: i64,
+        user_id: i64,
+    ) -> Result<()> {
+        if self.matrix_client.config().bridge.disable_typing_notifications {
+            return Ok(());
+        }
+
+        let portal = match self.portal_manager.get_by_telegram_chat(chat_id).await {
+            Some(p) => p,
+            None => return Ok(()),
+        };
+
+        self.ensure_puppet(user_id).await?;
+        let puppet_mxid = self.matrix_client.get_user_mxid(user_id).await;
+
+        self.matrix_client
+            .send_typing(&portal.matrix_room_id, &puppet_mxid, true, 5000)
+            .await?;
+
+        Ok(())
+    }
+
     // ========================================================================
     // Matrix -> Telegram message handlers
     // ========================================================================
@@ -893,6 +961,86 @@ impl BridgeCore {
         _inviter: &str,
     ) -> Result<()> {
         debug!("Matrix invite event - not forwarded to Telegram");
+        Ok(())
+    }
+
+    /// Handle an edited message from Matrix and forward the edit to Telegram.
+    pub async fn handle_matrix_edit(
+        &self,
+        room_id: &str,
+        _event_id: &str,
+        sender: &str,
+        original_event_id: &str,
+        new_text: &str,
+    ) -> Result<()> {
+        let portal = match self.portal_manager.get_by_matrix_room(room_id).await {
+            Some(p) => p,
+            None => return Ok(()),
+        };
+
+        let message_store = self.db_manager.message_store();
+        if let Ok(Some(mapping)) = message_store
+            .get_by_matrix_event(room_id, original_event_id)
+            .await
+        {
+            let display_name = Self::extract_localpart(sender);
+            let text = format!("{}: {}", display_name, new_text);
+            self.telegram_client
+                .edit_message(portal.telegram_chat_id, mapping.telegram_message_id as i32, &text)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    /// Handle a Matrix reaction being sent to Telegram.
+    pub async fn handle_matrix_reaction(
+        &self,
+        room_id: &str,
+        target_event_id: &str,
+        _sender: &str,
+        reaction_key: &str,
+    ) -> Result<()> {
+        let portal = match self.portal_manager.get_by_matrix_room(room_id).await {
+            Some(p) => p,
+            None => return Ok(()),
+        };
+
+        let message_store = self.db_manager.message_store();
+        if let Ok(Some(mapping)) = message_store
+            .get_by_matrix_event(room_id, target_event_id)
+            .await
+        {
+            // Telegram Bot API doesn't support setting reactions directly.
+            // Log the reaction for informational purposes.
+            debug!(
+                "Reaction '{}' on Telegram message {} in chat {} (Bot API limitation: cannot set reactions)",
+                reaction_key, mapping.telegram_message_id, portal.telegram_chat_id
+            );
+        }
+
+        Ok(())
+    }
+
+    /// Handle Matrix typing notification and forward to Telegram.
+    pub async fn handle_matrix_typing(
+        &self,
+        room_id: &str,
+        _user_id: &str,
+    ) -> Result<()> {
+        if self.matrix_client.config().bridge.disable_typing_notifications {
+            return Ok(());
+        }
+
+        let portal = match self.portal_manager.get_by_matrix_room(room_id).await {
+            Some(p) => p,
+            None => return Ok(()),
+        };
+
+        self.telegram_client
+            .send_chat_action(portal.telegram_chat_id, teloxide::types::ChatAction::Typing)
+            .await?;
+
         Ok(())
     }
 

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use teloxide::prelude::*;
 use teloxide::types::{
-    MediaKind, MessageKind,
+    ChatId, MediaKind, MessageKind,
 };
 use tracing::{debug, error, info};
 
@@ -22,11 +22,11 @@ impl TelegramUpdateHandler {
     pub async fn run(&self, bot: Bot) {
         let bridge = self.bridge.clone();
 
-        teloxide::repl(bot, move |msg: Message| {
+        teloxide::repl(bot, move |bot: Bot, msg: Message| {
             let bridge = bridge.clone();
             async move {
                 if let Some(ref bridge) = bridge {
-                    if let Err(e) = Self::handle_message(bridge, &msg).await {
+                    if let Err(e) = Self::handle_message(bridge, &bot, &msg).await {
                         error!("Error handling Telegram message: {}", e);
                     }
                 }
@@ -39,6 +39,7 @@ impl TelegramUpdateHandler {
     /// Process a single Telegram message.
     async fn handle_message(
         bridge: &BridgeCore,
+        bot: &Bot,
         msg: &Message,
     ) -> anyhow::Result<()> {
         let chat_id = msg.chat.id.0;
@@ -73,6 +74,13 @@ impl TelegramUpdateHandler {
             MessageKind::Common(common) => {
                 match &common.media_kind {
                     MediaKind::Text(text) => {
+                        // Check for bot commands before forwarding to bridge
+                        if let Some(handled) = Self::handle_command(bridge, bot, msg, &text.text).await? {
+                            if handled {
+                                return Ok(());
+                            }
+                        }
+
                         bridge
                             .handle_telegram_message(
                                 chat_id,
@@ -299,6 +307,81 @@ impl TelegramUpdateHandler {
         }
 
         Ok(())
+    }
+
+    /// Handle bot commands (messages starting with /).
+    /// Returns Ok(Some(true)) if the command was handled,
+    /// Ok(Some(false)) if the message starts with / but is not a recognized command,
+    /// Ok(None) if the message is not a command.
+    async fn handle_command(
+        bridge: &BridgeCore,
+        bot: &Bot,
+        msg: &Message,
+        text: &str,
+    ) -> anyhow::Result<Option<bool>> {
+        if !text.starts_with('/') {
+            return Ok(None);
+        }
+
+        // Extract the command (strip the leading / and any @botname suffix, take first word)
+        let first_word = text.split_whitespace().next().unwrap_or("");
+        let command = first_word
+            .strip_prefix('/')
+            .unwrap_or(first_word)
+            .split('@')
+            .next()
+            .unwrap_or("");
+
+        let chat_id = ChatId(msg.chat.id.0);
+
+        match command {
+            "start" => {
+                let welcome = "Welcome to the Matrix-Telegram Bridge Bot!\n\n\
+                    This bot bridges messages between Telegram chats and Matrix rooms.\n\n\
+                    Use /help to see available commands.";
+                bot.send_message(chat_id, welcome).await?;
+                info!("Handled /start command in chat {}", msg.chat.id.0);
+                Ok(Some(true))
+            }
+            "help" => {
+                let help_text = "Available commands:\n\n\
+                    /start - Show welcome message\n\
+                    /bridge - Show bridge status for this chat\n\
+                    /help - Show this help message";
+                bot.send_message(chat_id, help_text).await?;
+                info!("Handled /help command in chat {}", msg.chat.id.0);
+                Ok(Some(true))
+            }
+            "bridge" => {
+                let portal = bridge
+                    .portal_manager()
+                    .get_by_telegram_chat(msg.chat.id.0)
+                    .await;
+
+                let reply = match portal {
+                    Some(p) => {
+                        let title_part = p
+                            .title
+                            .as_deref()
+                            .map(|t| format!(" ({})", t))
+                            .unwrap_or_default();
+                        format!(
+                            "This chat is bridged to Matrix room: {}{}\nChat type: {}",
+                            p.matrix_room_id, title_part, p.telegram_chat_type
+                        )
+                    }
+                    None => "This chat is not currently bridged to any Matrix room.".to_string(),
+                };
+                bot.send_message(chat_id, reply).await?;
+                info!("Handled /bridge command in chat {}", msg.chat.id.0);
+                Ok(Some(true))
+            }
+            _ => {
+                // Unknown command -- let it pass through to the bridge as a regular message
+                debug!("Unknown command /{} in chat {}", command, msg.chat.id.0);
+                Ok(Some(false))
+            }
+        }
     }
 }
 

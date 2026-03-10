@@ -1,0 +1,26 @@
+services:
+  bridge:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "29317:29317"
+    volumes:
+      - ./config:/data
+    environment:
+      - CONFIG_PATH=/data/config.yaml
+      - REGISTRATION_PATH=/data/telegram-registration.yaml
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: telegram_bridge
+      POSTGRES_USER: bridge
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

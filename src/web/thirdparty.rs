@@ -1,6 +1,8 @@
 use salvo::prelude::*;
+use tracing::debug;
 
-/// Third-party protocol discovery endpoint (Matrix appservice spec).
+/// Third-party protocol discovery endpoint.
+/// GET /_matrix/app/v1/thirdparty/protocol/telegram
 #[handler]
 pub async fn get_protocols(res: &mut Response) {
     res.render(Json(serde_json::json!({
@@ -9,8 +11,8 @@ pub async fn get_protocols(res: &mut Response) {
         "icon": "mxc://",
         "field_types": {
             "username": {
-                "regexp": "[a-zA-Z0-9_]+",
-                "placeholder": "Telegram username"
+                "regexp": "[a-zA-Z0-9_]{5,32}",
+                "placeholder": "Telegram username (without @)"
             },
             "chat_id": {
                 "regexp": "-?[0-9]+",
@@ -28,29 +30,38 @@ pub async fn get_protocols(res: &mut Response) {
     })));
 }
 
-/// Get network info for a Telegram chat.
+/// Get network info.
+/// GET /_matrix/app/v1/thirdparty/network
 #[handler]
 pub async fn get_network(res: &mut Response) {
-    res.render(Json(serde_json::json!({
+    res.render(Json(serde_json::json!([{
         "network_id": "telegram",
-        "desc": "Telegram Messenger"
-    })));
+        "desc": "Telegram Messenger",
+        "icon": "mxc://",
+        "fields": {
+            "network": "telegram"
+        }
+    }])));
 }
 
-/// Look up a user across the bridge.
+/// Look up a third-party user.
+/// GET /_matrix/app/v1/thirdparty/user
 #[handler]
 pub async fn get_user(req: &mut Request, res: &mut Response) {
-    let _userid = req.query::<String>("userid").unwrap_or_default();
+    let userid = req.query::<String>("userid").unwrap_or_default();
+    debug!("API: Third-party user lookup: {}", userid);
 
-    // Return empty list if no matching users
+    // Return empty list - users are resolved dynamically
     res.render(Json(serde_json::json!([])));
 }
 
-/// Look up a location (chat/channel) across the bridge.
+/// Look up a third-party location (chat/channel).
+/// GET /_matrix/app/v1/thirdparty/location
 #[handler]
 pub async fn get_location(req: &mut Request, res: &mut Response) {
-    let _alias = req.query::<String>("alias").unwrap_or_default();
+    let alias = req.query::<String>("alias").unwrap_or_default();
+    debug!("API: Third-party location lookup: {}", alias);
 
-    // Return empty list if no matching locations
+    // Return empty list - locations are resolved dynamically
     res.render(Json(serde_json::json!([])));
 }

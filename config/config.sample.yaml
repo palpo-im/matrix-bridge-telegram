@@ -1,99 +1,410 @@
-# Matrix Telegram Bridge sample configuration.
-# Use snake_case keys in this file.
+# =============================================================================
+# Matrix-Telegram Bridge -- Sample Configuration
+# =============================================================================
+# Copy this file to config.yaml and update the values marked with
+# "CHANGE THIS" to match your environment.
+#
+# All keys use snake_case. Environment variable overrides are listed where
+# applicable.
+# =============================================================================
 
+# -----------------------------------------------------------------------------
+# bridge -- Core bridge settings
+# -----------------------------------------------------------------------------
 bridge:
-  domain: "localhost"
+  # CHANGE THIS: The domain of your Matrix homeserver (e.g., "example.org").
+  domain: "example.org"
+
+  # CHANGE THIS: The URL where the bridge can reach the Matrix homeserver.
   homeserver_url: "http://localhost:8008"
+
+  # Port the bridge HTTP server listens on.
+  # Default: 29317
   port: 29317
+
+  # Address the bridge HTTP server binds to.
+  # Default: "0.0.0.0"
   bind_address: "0.0.0.0"
+
+  # Interval in milliseconds between presence updates.
+  # Default: 500
   presence_interval: 500
+
+  # Disable presence synchronization entirely.
+  # Default: false
   disable_presence: false
+
+  # Disable typing notification forwarding.
+  # Default: false
   disable_typing_notifications: false
+
+  # Disable @mention translation between platforms.
+  # Default: false
+  disable_telegram_mentions: false
+
+  # Disable forwarding message deletions across platforms.
+  # Default: false
   disable_deletion_forwarding: false
-  disable_portal_bridging: false
+
+  # Allow users to bridge rooms themselves (without admin intervention).
+  # Default: false
   enable_self_service_bridging: false
+
+  # Disable automatic portal room creation for Telegram chats.
+  # Default: false
+  disable_portal_bridging: false
+
+  # Disable read receipt forwarding.
+  # Default: false
   disable_read_receipts: false
+
+  # Disable join/leave notifications in bridged rooms.
+  # Default: false
   disable_join_leave_notifications: false
+
+  # Disable invite notifications in bridged rooms.
+  # Default: false
   disable_invite_notifications: false
+
+  # Disable room topic change notifications.
+  # Default: false
   disable_room_topic_notifications: false
+
+  # Attempt to determine the programming language of code blocks.
+  # Default: false
   determine_code_language: false
-  admin_mxid: "@admin:localhost"
-  invalid_token_message: "Your Telegram API credentials seem to be invalid, and the bridge cannot function. Please update them in your bridge settings and restart the bridge"
-  command_prefix: "!tg"
+
+  # Maximum number of users allowed to use the bridge. null = unlimited.
+  # Default: null
   user_limit: null
+
+  # CHANGE THIS: Matrix ID of the bridge administrator.
+  # This user can run admin-only commands (e.g., !tg list).
+  admin_mxid: "@admin:example.org"
+
+  # Message shown when Telegram API credentials are invalid.
+  # Default: (built-in message)
+  invalid_token_message: "Your Telegram API credentials seem to be invalid, and the bridge cannot function. Please update them in your bridge settings and restart the bridge"
+
+  # Prefix for bridge commands in Matrix rooms.
+  # Users type this followed by a command, e.g., "!tg help".
+  # Default: "!tg"
+  command_prefix: "!tg"
+
+  # User activity tracking. Set to null to disable.
   user_activity:
+    # Minimum days a user must have been active to count.
     min_user_active_days: 0
+    # Number of days after which a user is considered inactive.
     inactive_after_days: 0
+
+  # End-to-bridge encryption settings.
   encryption:
+    # Allow encryption in bridged rooms.
+    # Default: false
     allow: false
+    # Enable encryption by default for new bridged rooms.
+    # Default: false
     default: false
+    # Require encryption for all bridged rooms. Unencrypted rooms will be rejected.
+    # Default: false
     require: false
 
-auth:
-  api_id: 12345
-  api_hash: "your_api_hash_here"
-  bot_token: null
+# -----------------------------------------------------------------------------
+# registration -- Appservice registration
+# -----------------------------------------------------------------------------
+# These values can also be loaded from a separate telegram-registration.yaml
+# file placed next to your config.yaml (or set via REGISTRATION_PATH env var).
+# Values in config.yaml take precedence over the registration file.
+registration:
+  # CHANGE THIS: Unique identifier for this appservice.
+  # Env: APPSERVICE_TELEGRAM_REGISTRATION_ID
+  bridge_id: "telegram"
 
+  # CHANGE THIS: Appservice token (as_token). Must match the registration file
+  # registered with your homeserver.
+  # Env: APPSERVICE_TELEGRAM_REGISTRATION_AS_TOKEN
+  appservice_token: "CHANGE_THIS_as_token"
+
+  # CHANGE THIS: Homeserver token (hs_token). Must match the registration file
+  # registered with your homeserver.
+  # Env: APPSERVICE_TELEGRAM_REGISTRATION_HS_TOKEN
+  homeserver_token: "CHANGE_THIS_hs_token"
+
+  # Localpart of the bridge bot user on your homeserver.
+  # The full MXID will be @<sender_localpart>:<domain>.
+  # Env: APPSERVICE_TELEGRAM_REGISTRATION_SENDER_LOCALPART
+  # Default: "_telegram_"
+  sender_localpart: "_telegram_"
+
+  # Whether the appservice should be rate-limited by the homeserver.
+  # Default: false
+  rate_limited: false
+
+  # Protocols advertised by this appservice.
+  # Default: ["telegram"]
+  protocols:
+    - "telegram"
+
+  # Namespace reservations for users, aliases, and rooms.
+  namespaces:
+    users:
+      - exclusive: true
+        regex: "@_telegram_.*:example.org"  # CHANGE THIS: replace example.org with your domain
+    aliases:
+      - exclusive: true
+        regex: "#_telegram_.*:example.org"  # CHANGE THIS: replace example.org with your domain
+    rooms: []
+
+# -----------------------------------------------------------------------------
+# auth -- Telegram API credentials
+# -----------------------------------------------------------------------------
+auth:
+  # CHANGE THIS: Telegram API ID from https://my.telegram.org/
+  # Env: APPSERVICE_TELEGRAM_AUTH_API_ID
+  api_id: 12345
+
+  # CHANGE THIS: Telegram API hash from https://my.telegram.org/
+  # Env: APPSERVICE_TELEGRAM_AUTH_API_HASH
+  api_hash: "CHANGE_THIS_your_api_hash"
+
+  # CHANGE THIS: Telegram Bot token from @BotFather.
+  # Set to null if not using a bot account.
+  # Env: APPSERVICE_TELEGRAM_AUTH_BOT_TOKEN
+  bot_token: "CHANGE_THIS_123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+
+# -----------------------------------------------------------------------------
+# logging -- Logging configuration
+# -----------------------------------------------------------------------------
 logging:
+  # Console log level. Options: trace, debug, info, warn, error
+  # Default: "info"
   level: "info"
+
+  # Date format for log lines.
+  # Default: "MMM-D HH:mm:ss.SSS"
   line_date_format: "MMM-D HH:mm:ss.SSS"
+
+  # Log output format. Options: pretty, json, compact
+  # Default: "pretty"
   format: "pretty"
+
+  # Optional: write logs to a single file (simple mode).
+  # Set to null to disable file logging.
+  # file: "/var/log/matrix-bridge-telegram/bridge.log"
+  file: null
+
+  # Optional: advanced file logging with rotation.
+  # files:
+  #   - file: "/var/log/matrix-bridge-telegram/bridge.log"
+  #     level: "info"             # Log level for this file. Default: "info"
+  #     max_files: "14d"          # Retention period or count. Default: "14d"
+  #     max_size: "50m"           # Max file size before rotation. Default: "50m"
+  #     date_pattern: "YYYY-MM-DD" # Date pattern for rotated files. Default: "YYYY-MM-DD"
+  #     enabled: []               # Filter: only log these modules (empty = all)
+  #     disabled: []              # Filter: exclude these modules
   files: []
 
+# -----------------------------------------------------------------------------
+# database -- Database connection
+# -----------------------------------------------------------------------------
 database:
-  # Choose one:
+  # CHANGE THIS: Database connection URL. Supported formats:
+  #   PostgreSQL: "postgresql://user:password@localhost:5432/matrix_telegram"
+  #   SQLite:     "sqlite://./telegram.db"
+  #   MySQL:      "mysql://user:password@localhost:3306/matrix_telegram"
+  url: "postgresql://bridge:changeme@localhost:5432/telegram_bridge"
+
+  # Alternative: specify connection string (same as url, either one works).
+  # conn_string: "postgresql://user:password@localhost/matrix_telegram"
+
+  # Alternative for SQLite: just specify the filename.
   # filename: "telegram.db"
-  # url: "postgresql://user:password@localhost/matrix_telegram"
-  # url: "mysql://user:password@localhost:3306/matrix_telegram"
-  url: "sqlite://./telegram.db"
+
+  # Optional: path to store user data (for file-based backends).
+  # user_store_path: null
+
+  # Optional: path to store room data (for file-based backends).
+  # room_store_path: null
+
+  # Maximum number of connections in the pool.
+  # Ignored for SQLite (always 1). Default: null (driver default)
   max_connections: 10
+
+  # Minimum number of connections in the pool.
+  # Ignored for SQLite (always 1). Default: null (driver default)
   min_connections: 1
 
+# -----------------------------------------------------------------------------
+# room -- Room settings
+# -----------------------------------------------------------------------------
 room:
+  # Default visibility for newly created portal rooms.
+  # Options: "public", "private"
+  # Default: ""
   default_visibility: "public"
+
+  # Prefix for Matrix room aliases created by the bridge.
+  # Example: with prefix "_telegram_", a group "mygroup" gets alias
+  # #_telegram_mygroup:example.org
+  # Default: ""
   room_alias_prefix: "_telegram_"
+
+  # Allow the bridge to create new Matrix rooms for Telegram chats.
+  # Default: false
   enable_room_creation: true
+
+  # Time in milliseconds before kicking inactive ghost users from rooms.
+  # Default: 30000
   kick_for: 30000
 
+# -----------------------------------------------------------------------------
+# portal -- Portal and puppet display settings
+# -----------------------------------------------------------------------------
 portal:
+  # Template for Matrix usernames of Telegram ghost users.
+  # Available placeholders: {userid}
+  # Default: "telegram_{userid}"
   username_template: "telegram_{userid}"
+
+  # Template for Matrix room aliases of bridged Telegram groups.
+  # Available placeholders: {groupname}
+  # Default: "telegram_{groupname}"
   alias_template: "telegram_{groupname}"
+
+  # Template for Matrix display names of Telegram ghost users.
+  # Available placeholders: {displayname}
+  # Default: "{displayname} (Telegram)"
   displayname_template: "{displayname} (Telegram)"
+
+  # Order of preference for constructing the display name.
+  # Options: "full name", "full name reversed", "first name", "last name",
+  #          "username", "phone number"
+  # Default: []
   displayname_preference:
     - "full name"
     - "username"
     - "phone number"
+
+  # Maximum length for display names. Longer names will be truncated.
+  # Default: 100
   displayname_max_length: 100
+
+  # Make portal rooms publicly joinable.
+  # Default: false
   public_portals: false
+
+  # Sync Telegram channel/group members to Matrix on startup.
+  # Default: false
   sync_channel_members: false
+
+  # Maximum number of members to sync initially when creating a portal.
+  # Set to -1 for unlimited.
+  # Default: 0
   max_initial_member_sync: 100
+
+  # Allow portal rooms to be federated to other Matrix servers.
+  # Default: false
   federate_rooms: true
 
+# -----------------------------------------------------------------------------
+# limits -- Rate limits and thresholds
+# -----------------------------------------------------------------------------
 limits:
+  # Delay in milliseconds between ghost user joins to avoid flooding.
+  # Default: 6000
   room_ghost_join_delay: 6000
+
+  # Delay in milliseconds between outgoing Telegram messages.
+  # Default: 1500
   telegram_send_delay: 1500
+
+  # Maximum number of rooms that can be bridged. -1 = unlimited.
+  # Default: -1
   room_count: -1
+
+  # Ignore Matrix events older than this many milliseconds.
+  # Default: 900000 (15 minutes)
   matrix_event_age_limit_ms: 900000
+
+  # Maximum number of Telegram messages to delete in a single batch.
+  # Default: 10
   max_telegram_delete: 10
+
+  # Images larger than this size (in MB) will be sent as files instead.
+  # Default: 10
   image_as_file_size: 10
 
+# -----------------------------------------------------------------------------
+# ghosts -- Ghost user naming patterns
+# -----------------------------------------------------------------------------
 ghosts:
+  # Pattern for ghost user nicknames.
+  # Default: ":nick"
   nick_pattern: ":nick"
+
+  # Pattern for ghost user usernames.
+  # Default: ":username"
   username_pattern: ":username"
+
+  # Template for ghost user Matrix usernames.
+  # Default: ""
   username_template: "_telegram_{user_id}"
+
+  # Template for ghost user Matrix display names.
+  # Default: ""
   displayname_template: "{displayname} (Telegram)"
+
+  # Template URL for ghost user avatars. null = use Telegram avatar.
+  # Default: null
   avatar_url_template: null
 
+# -----------------------------------------------------------------------------
+# metrics -- Prometheus metrics
+# -----------------------------------------------------------------------------
 metrics:
+  # Enable the /metrics endpoint for Prometheus scraping.
+  # Requires the "metrics" and "metrics-exporter-prometheus" features at
+  # compile time.
+  # Default: false
   enabled: false
+
+  # Port for the metrics HTTP server.
+  # Default: 9001
   port: 9001
+
+  # Address the metrics server binds to.
+  # Default: "127.0.0.1"
   bind_address: "127.0.0.1"
 
+# -----------------------------------------------------------------------------
+# telegram -- Telegram connection settings
+# -----------------------------------------------------------------------------
 telegram:
+  # Fetch missed messages on startup.
+  # Default: false
   catch_up: true
+
+  # Process Telegram updates sequentially instead of concurrently.
+  # Enabling this ensures message ordering but reduces throughput.
+  # Default: false
   sequential_updates: true
+
+  # Connection parameters for the Telegram Bot API.
   connection:
+    # HTTP request timeout in seconds.
+    # Default: 120
     timeout: 120
+
+    # Number of retry attempts for failed requests.
+    # Default: 5
     retries: 5
+
+    # Delay in seconds between retry attempts.
+    # Default: 1
     retry_delay: 1
+
+    # Maximum time in seconds to sleep when rate-limited (flood wait).
+    # Requests requiring longer waits will fail instead.
+    # Default: 60
     flood_sleep_threshold: 60

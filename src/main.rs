@@ -8,6 +8,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use tracing::{error, info};
 
+mod backfill;
 mod bridge;
 mod cache;
 mod cli;
@@ -16,6 +17,7 @@ mod db;
 mod matrix;
 mod media;
 mod parsers;
+mod sticker;
 mod telegram;
 mod utils;
 mod web;

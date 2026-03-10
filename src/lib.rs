@@ -1,3 +1,4 @@
+pub mod backfill;
 pub mod bridge;
 pub mod cache;
 pub mod cli;
@@ -6,6 +7,7 @@ pub mod db;
 pub mod matrix;
 pub mod media;
 pub mod parsers;
+pub mod sticker;
 pub mod telegram;
 pub mod utils;
 pub mod web;
