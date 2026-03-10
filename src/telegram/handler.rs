@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use teloxide::prelude::*;
-use teloxide::types::{
-    ChatId, MediaKind, MessageKind,
-};
+use teloxide::types::{ChatId, MediaKind, MessageKind};
 use tracing::{debug, error, info};
 
 use crate::bridge::BridgeCore;
@@ -36,20 +34,16 @@ impl TelegramUpdateHandler {
         .await;
     }
 
+    fn owned_file_ids(file: &teloxide::types::FileMeta) -> (String, String) {
+        (file.id.to_string(), file.unique_id.to_string())
+    }
+
     /// Process a single Telegram message.
-    async fn handle_message(
-        bridge: &BridgeCore,
-        bot: &Bot,
-        msg: &Message,
-    ) -> anyhow::Result<()> {
+    async fn handle_message(bridge: &BridgeCore, bot: &Bot, msg: &Message) -> anyhow::Result<()> {
         let chat_id = msg.chat.id.0;
         let message_id = msg.id.0;
 
-        let sender_id = msg
-            .from
-            .as_ref()
-            .map(|u| u.id.0 as i64)
-            .unwrap_or(0);
+        let sender_id = msg.from.as_ref().map(|u| u.id.0 as i64).unwrap_or(0);
 
         let sender_name = msg
             .from
@@ -75,62 +69,51 @@ impl TelegramUpdateHandler {
                 match &common.media_kind {
                     MediaKind::Text(text) => {
                         // Check for bot commands before forwarding to bridge
-                        if let Some(handled) = Self::handle_command(bridge, bot, msg, &text.text).await? {
+                        if let Some(handled) =
+                            Self::handle_command(bridge, bot, msg, &text.text).await?
+                        {
                             if handled {
                                 return Ok(());
                             }
                         }
 
                         bridge
-                            .handle_telegram_message(
-                                chat_id,
-                                message_id,
-                                sender_id,
-                                &text.text,
-                            )
+                            .handle_telegram_message(chat_id, message_id, sender_id, &text.text)
                             .await?;
                     }
                     MediaKind::Photo(photo) => {
-                        let caption = photo
-                            .caption
-                            .as_deref()
-                            .unwrap_or("");
+                        let caption = photo.caption.as_deref().unwrap_or("");
                         if let Some(largest) = photo.photo.last() {
+                            let (file_id, file_unique_id) = Self::owned_file_ids(&largest.file);
                             bridge
                                 .handle_telegram_photo(
                                     chat_id,
                                     message_id,
                                     sender_id,
-                                    &largest.file.id,
-                                    &largest.file.unique_id,
+                                    &file_id,
+                                    &file_unique_id,
                                     caption,
                                 )
                                 .await?;
                         }
                     }
                     MediaKind::Document(doc) => {
-                        let caption = doc
-                            .caption
-                            .as_deref()
-                            .unwrap_or("");
-                        let filename = doc
-                            .document
-                            .file_name
-                            .as_deref()
-                            .unwrap_or("file");
+                        let caption = doc.caption.as_deref().unwrap_or("");
+                        let filename = doc.document.file_name.as_deref().unwrap_or("file");
                         let mime = doc
                             .document
                             .mime_type
                             .as_ref()
                             .map(|m| m.to_string())
                             .unwrap_or_else(|| "application/octet-stream".to_string());
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&doc.document.file);
                         bridge
                             .handle_telegram_document(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &doc.document.file.id,
-                                &doc.document.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 filename,
                                 &mime,
                                 caption,
@@ -138,62 +121,56 @@ impl TelegramUpdateHandler {
                             .await?;
                     }
                     MediaKind::Video(video) => {
-                        let caption = video
-                            .caption
-                            .as_deref()
-                            .unwrap_or("");
+                        let caption = video.caption.as_deref().unwrap_or("");
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&video.video.file);
                         bridge
                             .handle_telegram_video(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &video.video.file.id,
-                                &video.video.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 caption,
                             )
                             .await?;
                     }
                     MediaKind::Audio(audio) => {
-                        let caption = audio
-                            .caption
-                            .as_deref()
-                            .unwrap_or("");
+                        let caption = audio.caption.as_deref().unwrap_or("");
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&audio.audio.file);
                         bridge
                             .handle_telegram_audio(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &audio.audio.file.id,
-                                &audio.audio.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 caption,
                             )
                             .await?;
                     }
                     MediaKind::Voice(voice) => {
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&voice.voice.file);
                         bridge
                             .handle_telegram_audio(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &voice.voice.file.id,
-                                &voice.voice.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 "",
                             )
                             .await?;
                     }
                     MediaKind::Sticker(sticker) => {
-                        let emoji = sticker
-                            .sticker
-                            .emoji
-                            .as_deref()
-                            .unwrap_or("");
+                        let emoji = sticker.sticker.emoji.as_deref().unwrap_or("");
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&sticker.sticker.file);
                         bridge
                             .handle_telegram_sticker(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &sticker.sticker.file.id,
-                                &sticker.sticker.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 emoji,
                             )
                             .await?;
@@ -233,29 +210,28 @@ impl TelegramUpdateHandler {
                             .await?;
                     }
                     MediaKind::Animation(anim) => {
-                        let caption = anim
-                            .caption
-                            .as_deref()
-                            .unwrap_or("");
+                        let caption = anim.caption.as_deref().unwrap_or("");
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&anim.animation.file);
                         bridge
                             .handle_telegram_video(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &anim.animation.file.id,
-                                &anim.animation.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 caption,
                             )
                             .await?;
                     }
                     MediaKind::VideoNote(vn) => {
+                        let (file_id, file_unique_id) = Self::owned_file_ids(&vn.video_note.file);
                         bridge
                             .handle_telegram_video(
                                 chat_id,
                                 message_id,
                                 sender_id,
-                                &vn.video_note.file.id,
-                                &vn.video_note.file.unique_id,
+                                &file_id,
+                                &file_unique_id,
                                 "",
                             )
                             .await?;
@@ -267,10 +243,7 @@ impl TelegramUpdateHandler {
             }
             MessageKind::NewChatMembers(members) => {
                 for user in &members.new_chat_members {
-                    info!(
-                        "User {} joined chat {}",
-                        user.first_name, chat_id
-                    );
+                    info!("User {} joined chat {}", user.first_name, chat_id);
                     bridge
                         .handle_telegram_join(chat_id, user.id.0 as i64)
                         .await?;
@@ -295,10 +268,10 @@ impl TelegramUpdateHandler {
             }
             MessageKind::Pinned(pinned) => {
                 // The pinned message is a MaybeInaccessibleMessage
-                if let teloxide::types::MaybeInaccessibleMessage::Regular(pinned_msg) = pinned.pinned.as_ref() {
-                    bridge
-                        .handle_telegram_pin(chat_id, pinned_msg.id.0)
-                        .await?;
+                if let teloxide::types::MaybeInaccessibleMessage::Regular(pinned_msg) =
+                    pinned.pinned.as_ref()
+                {
+                    bridge.handle_telegram_pin(chat_id, pinned_msg.id.0).await?;
                 }
             }
             _ => {
