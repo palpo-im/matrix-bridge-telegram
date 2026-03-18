@@ -1,0 +1,276 @@
+// Matrix-Telegram Bridge Configuration (KDL format)
+// Copy this file and update the values marked with "CHANGE THIS" to match your environment.
+// Use snake_case keys in this file.
+
+bridge {
+    // CHANGE THIS: The domain of your Matrix homeserver (e.g., "example.org").
+    domain "example.org"
+
+    // CHANGE THIS: The URL where the bridge can reach the Matrix homeserver.
+    homeserver_url "http://localhost:8008"
+
+    // Port the bridge HTTP server listens on.
+    port 29317
+
+    // Address the bridge HTTP server binds to.
+    bind_address "0.0.0.0"
+
+    // Interval in milliseconds between presence updates.
+    presence_interval 500
+
+    // Disable presence synchronization entirely.
+    disable_presence false
+
+    // Disable typing notification forwarding.
+    disable_typing_notifications false
+
+    // Disable @mention translation between platforms.
+    disable_telegram_mentions false
+
+    // Disable forwarding message deletions across platforms.
+    disable_deletion_forwarding false
+
+    // Allow users to bridge rooms themselves (without admin intervention).
+    enable_self_service_bridging false
+
+    // Disable automatic portal room creation for Telegram chats.
+    disable_portal_bridging false
+
+    // Disable read receipt forwarding.
+    disable_read_receipts false
+
+    // Disable join/leave notifications in bridged rooms.
+    disable_join_leave_notifications false
+
+    // Disable invite notifications in bridged rooms.
+    disable_invite_notifications false
+
+    // Disable room topic change notifications.
+    disable_room_topic_notifications false
+
+    // Attempt to determine the programming language of code blocks.
+    determine_code_language false
+
+    // Maximum number of users allowed to use the bridge. null = unlimited.
+    user_limit null
+
+    // CHANGE THIS: Matrix ID of the bridge administrator.
+    admin_mxid "@admin:example.org"
+
+    // Message shown when Telegram API credentials are invalid.
+    invalid_token_message "Your Telegram API credentials seem to be invalid, and the bridge cannot function. Please update them in your bridge settings and restart the bridge"
+
+    // Prefix for bridge commands in Matrix rooms.
+    command_prefix "!tg"
+
+    // User activity tracking.
+    user_activity {
+        min_user_active_days 0
+        inactive_after_days 0
+    }
+
+    // End-to-bridge encryption settings.
+    encryption {
+        allow false
+        default false
+        require false
+    }
+}
+
+registration {
+    // CHANGE THIS: Unique identifier for this appservice.
+    bridge_id "telegram"
+
+    // CHANGE THIS: Appservice token (as_token).
+    appservice_token "CHANGE_THIS_as_token"
+
+    // CHANGE THIS: Homeserver token (hs_token).
+    homeserver_token "CHANGE_THIS_hs_token"
+
+    // Localpart of the bridge bot user on your homeserver.
+    sender_localpart "_telegram_"
+
+    // Whether the appservice should be rate-limited by the homeserver.
+    rate_limited false
+
+    // Protocols advertised by this appservice.
+    protocols {
+        - "telegram"
+    }
+
+    // Namespace reservations for users, aliases, and rooms.
+    namespaces {
+        users {
+            // CHANGE THIS: replace example.org with your domain
+            - exclusive=true regex="@_telegram_.*:example.org"
+        }
+        aliases {
+            // CHANGE THIS: replace example.org with your domain
+            - exclusive=true regex="#_telegram_.*:example.org"
+        }
+        rooms {
+        }
+    }
+}
+
+auth {
+    // CHANGE THIS: Telegram API ID from https://my.telegram.org/
+    api_id 12345
+
+    // CHANGE THIS: Telegram API hash from https://my.telegram.org/
+    api_hash "CHANGE_THIS_your_api_hash"
+
+    // CHANGE THIS: Telegram Bot token from @BotFather.
+    // Set to null if not using a bot account.
+    bot_token "CHANGE_THIS_123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+}
+
+logging {
+    // Console log level. Options: trace, debug, info, warn, error
+    level "info"
+
+    // Date format for log lines.
+    line_date_format "MMM-D HH:mm:ss.SSS"
+
+    // Log output format. Options: pretty, json, compact
+    format "pretty"
+
+    // Optional: write logs to a file. null = disabled.
+    file null
+
+    // Optional: advanced file logging with rotation. Empty = disabled.
+    files {
+    }
+}
+
+database {
+    // CHANGE THIS: Database connection URL.
+    //   PostgreSQL: "postgresql://user:password@localhost:5432/matrix_telegram"
+    //   SQLite:     "sqlite://./telegram.db"
+    //   MySQL:      "mysql://user:password@localhost:3306/matrix_telegram"
+    url "postgresql://bridge:changeme@localhost:5432/telegram_bridge"
+
+    // Maximum number of connections in the pool.
+    max_connections 10
+
+    // Minimum number of connections in the pool.
+    min_connections 1
+}
+
+room {
+    // Default visibility for newly created portal rooms. Options: "public", "private"
+    default_visibility "public"
+
+    // Prefix for Matrix room aliases created by the bridge.
+    room_alias_prefix "_telegram_"
+
+    // Allow the bridge to create new Matrix rooms for Telegram chats.
+    enable_room_creation true
+
+    // Time in milliseconds before kicking inactive ghost users from rooms.
+    kick_for 30000
+}
+
+portal {
+    // Template for Matrix usernames of Telegram ghost users.
+    username_template "telegram_{userid}"
+
+    // Template for Matrix room aliases of bridged Telegram groups.
+    alias_template "telegram_{groupname}"
+
+    // Template for Matrix display names of Telegram ghost users.
+    displayname_template "{displayname} (Telegram)"
+
+    // Order of preference for constructing the display name.
+    displayname_preference {
+        - "full name"
+        - "username"
+        - "phone number"
+    }
+
+    // Maximum length for display names.
+    displayname_max_length 100
+
+    // Make portal rooms publicly joinable.
+    public_portals false
+
+    // Sync Telegram channel/group members to Matrix on startup.
+    sync_channel_members false
+
+    // Maximum number of members to sync initially. -1 for unlimited.
+    max_initial_member_sync 100
+
+    // Allow portal rooms to be federated to other Matrix servers.
+    federate_rooms true
+}
+
+limits {
+    // Delay in milliseconds between ghost user joins to avoid flooding.
+    room_ghost_join_delay 6000
+
+    // Delay in milliseconds between outgoing Telegram messages.
+    telegram_send_delay 1500
+
+    // Maximum number of rooms that can be bridged. -1 = unlimited.
+    room_count -1
+
+    // Ignore Matrix events older than this many milliseconds.
+    matrix_event_age_limit_ms 900000
+
+    // Maximum number of Telegram messages to delete in a single batch.
+    max_telegram_delete 10
+
+    // Images larger than this size (in MB) will be sent as files instead.
+    image_as_file_size 10
+}
+
+ghosts {
+    // Pattern for ghost user nicknames.
+    nick_pattern ":nick"
+
+    // Pattern for ghost user usernames.
+    username_pattern ":username"
+
+    // Template for ghost user Matrix usernames.
+    username_template "_telegram_{user_id}"
+
+    // Template for ghost user Matrix display names.
+    displayname_template "{displayname} (Telegram)"
+
+    // Template URL for ghost user avatars. null = use Telegram avatar.
+    avatar_url_template null
+}
+
+metrics {
+    // Enable the /metrics endpoint for Prometheus scraping.
+    enabled false
+
+    // Port for the metrics HTTP server.
+    port 9001
+
+    // Address the metrics server binds to.
+    bind_address "127.0.0.1"
+}
+
+telegram {
+    // Fetch missed messages on startup.
+    catch_up true
+
+    // Process Telegram updates sequentially instead of concurrently.
+    sequential_updates true
+
+    // Connection parameters for the Telegram Bot API.
+    connection {
+        // HTTP request timeout in seconds.
+        timeout 120
+
+        // Number of retry attempts for failed requests.
+        retries 5
+
+        // Delay in seconds between retry attempts.
+        retry_delay 1
+
+        // Maximum time in seconds to sleep when rate-limited (flood wait).
+        flood_sleep_threshold 60
+    }
+}

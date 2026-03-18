@@ -8,6 +8,9 @@ pub enum ConfigError {
     #[error("YAML parse error: {0}")]
     Yaml(#[from] serde_yaml::Error),
 
+    #[error("KDL parsing error: {0}")]
+    Kdl(String),
+
     #[error("Invalid configuration: {0}")]
     InvalidConfig(String),
 }

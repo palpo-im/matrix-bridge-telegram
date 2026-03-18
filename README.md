@@ -79,7 +79,19 @@ To bridge a room, you need the Telegram chat ID. Methods to obtain it:
 
 ### 5. Fill in Your Configuration
 
-Add the credentials to `config.yaml`:
+Add the credentials to your config file.
+
+**KDL format** (`config.kdl`):
+
+```kdl
+auth {
+    api_id 12345678
+    api_hash "0123456789abcdef"
+    bot_token "123456789:ABCdefGhIJKlmnOPQRstUVwxyz"
+}
+```
+
+**YAML format** (`config.yaml`):
 
 ```yaml
 auth:
@@ -169,7 +181,7 @@ docker run -v ./config:/data -p 29317:29317 matrix-bridge-telegram
 
 ## Configuration
 
-The bridge is configured through a YAML file. See [`config/config.sample.yaml`](config/config.sample.yaml) for a complete annotated example.
+The bridge is configured through a YAML or KDL file. See [`config/config.sample.yaml`](config/config.sample.yaml) for the YAML example or [`config/config.example.kdl`](config/config.example.kdl) for the KDL example.
 
 Configuration can also be loaded via the `CONFIG_PATH` environment variable. Sensitive values support environment variable overrides:
 
@@ -198,6 +210,46 @@ Configuration can also be loaded via the `CONFIG_PATH` environment variable. Sen
 | `ghosts` | Ghost user naming patterns |
 | `metrics` | Prometheus metrics endpoint configuration |
 | `telegram` | Telegram connection settings and update handling |
+
+## Palpo KDL Configuration
+
+When running in the [Palpo](https://github.com/palpo-im/palpo) environment, you can use KDL format for configuration. See [`config/config.example.kdl`](config/config.example.kdl) for the full annotated example.
+
+Key sections in KDL format:
+
+```kdl
+bridge {
+    domain "example.org"
+    homeserver_url "http://localhost:8008"
+    port 29317
+    bind_address "0.0.0.0"
+    command_prefix "!tg"
+    admin_mxid "@admin:example.org"
+}
+
+auth {
+    api_id 12345
+    api_hash "your_api_hash"
+    bot_token "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+}
+
+registration {
+    bridge_id "telegram"
+    appservice_token "your_as_token"
+    homeserver_token "your_hs_token"
+    sender_localpart "_telegram_"
+    namespaces {
+        users {
+            - exclusive=true regex="@_telegram_.*:example.org"
+        }
+    }
+}
+
+database {
+    url "postgresql://bridge:changeme@localhost:5432/telegram_bridge"
+    max_connections 10
+}
+```
 
 ## Commands
 
